@@ -1,0 +1,34 @@
+# จุดเริ่มต้นของโปรเจกต์
+root = "."
+tmp_dir = "tmp"
+
+[build]
+# คำสั่ง build (ไปที่ cmd/api เพราะ main.go อยู่ตรงนั้น)
+cmd = "go build -o ./tmp/main ./cmd/api"
+
+# ไฟล์ binary ที่ build เสร็จ
+bin = "tmp/main"
+
+# คำสั่งรันจริง
+full_bin = "APP_ENV=dev ./tmp/main"
+
+# ให้ watch เฉพาะไฟล์ที่สำคัญ
+include_ext = ["go", "mod", "sum"]
+
+# exclude dir ที่ไม่เกี่ยวข้อง เพื่อกันลูป
+exclude_dir = ["vendor", "tmp", "docs"]
+
+# กันเหนียว exclude ไฟล์ swagger ที่ gen อัตโนมัติ
+exclude_file = [
+  "docs/docs.go",
+  "docs/swagger.json",
+  "docs/swagger.yaml"
+]
+
+[log]
+time = true
+color = true
+
+[watcher]
+# debounce 1 วินาที กันการ trigger ถี่เกินไป
+delay = 1000
