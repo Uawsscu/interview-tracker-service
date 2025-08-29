@@ -9,6 +9,7 @@ import (
 
 type RoleRepository interface {
 	GetList() ([]*entities.Role, error)
+	ExistsByID(id string) (bool, error)
 }
 
 type roleRepo struct{ db *gorm.DB }
@@ -25,4 +26,12 @@ func (r *roleRepo) GetList() ([]*entities.Role, error) {
 	}
 
 	return roles, nil
+}
+
+func (r *roleRepo) ExistsByID(id string) (bool, error) {
+	var cnt int64
+	if err := r.db.Model(&entities.Role{}).Where("id = ? AND is_active = TRUE", id).Count(&cnt).Error; err != nil {
+		return false, err
+	}
+	return cnt > 0, nil
 }

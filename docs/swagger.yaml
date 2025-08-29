@@ -31,6 +31,53 @@ definitions:
         example: 0b83305f-75b2-4e89-a444-70da68f84d4f.0224f190-0f9a-46a4-a0fc-521fcc07e2ee..
         type: string
     type: object
+  card_models.AddCommentReq:
+    properties:
+      content:
+        example: ควรปรับปรุง portfolio ให้ละเอียดขึ้น
+        type: string
+    required:
+    - content
+    type: object
+  card_models.CreateCardReq:
+    properties:
+      description:
+        example: สัมภาษณ์ตำแหน่ง Backend Developer
+        type: string
+      scheduled_at:
+        example: "2023-01-01T10:00:00Z"
+        type: string
+      title:
+        example: นัดสัมภาษณ์งาน 1
+        type: string
+    required:
+    - scheduled_at
+    - title
+    type: object
+  card_models.UpdateCardReq:
+    properties:
+      description:
+        example: สัมภาษณ์ตำแหน่ง Fullstack Developer
+        type: string
+      scheduled_at:
+        example: "2023-01-02T15:00:00Z"
+        type: string
+      title:
+        example: นัดสัมภาษณ์งาน 2
+        type: string
+    type: object
+  card_models.UpdateCardStatusReq:
+    properties:
+      status:
+        enum:
+        - todo
+        - in_progress
+        - done
+        example: in_progress
+        type: string
+    required:
+    - status
+    type: object
   entities.Role:
     properties:
       code:
@@ -52,8 +99,6 @@ definitions:
     properties:
       created_at:
         type: string
-      created_by:
-        type: string
       email:
         type: string
       id:
@@ -67,8 +112,6 @@ definitions:
       role_id:
         type: string
       updated_at:
-        type: string
-      updated_by:
         type: string
     type: object
   user_models.CreateUserRequest:
@@ -113,6 +156,249 @@ info:
   title: Interview Tracker API
   version: "1.0"
 paths:
+  /interview-tracker/authen/cards:
+    get:
+      parameters:
+      - description: page
+        in: query
+        name: page
+        type: integer
+      - description: page size
+        in: query
+        name: page_size
+        type: integer
+      - default: todo
+        description: Filter status
+        enum:
+        - todo
+        - in_progress
+        - done
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List cards
+      tags:
+      - cards
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: card create JSON
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/card_models.CreateCardReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create card
+      tags:
+      - cards
+  /interview-tracker/authen/cards/{id}:
+    get:
+      parameters:
+      - description: card id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get card detail
+      tags:
+      - cards
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: card id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: patch
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/card_models.UpdateCardReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update card (partial)
+      tags:
+      - cards
+  /interview-tracker/authen/cards/{id}/comments:
+    get:
+      parameters:
+      - description: card id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: integer
+      - description: size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List comments
+      tags:
+      - comments
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: card id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: comment
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/card_models.AddCommentReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Add comment
+      tags:
+      - comments
+  /interview-tracker/authen/cards/{id}/history:
+    get:
+      parameters:
+      - description: card id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: integer
+      - description: size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: list history ogs
+      tags:
+      - cards
+  /interview-tracker/authen/cards/{id}/keep:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: card id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: จัดเก็บ
+      tags:
+      - cards
+  /interview-tracker/authen/cards/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: card id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: new status
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/card_models.UpdateCardStatusReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Change status
+      tags:
+      - cards
   /interview-tracker/health:
     get:
       description: Returns success if the service is healthy
