@@ -4,6 +4,7 @@ import (
 	"interview-tracker/internal/adapters/handlers"
 	"interview-tracker/internal/adapters/repositories"
 	"interview-tracker/internal/config"
+	"interview-tracker/internal/middleware"
 	"interview-tracker/internal/usecases"
 
 	"github.com/gin-gonic/gin"
@@ -17,5 +18,8 @@ func Auth(r *gin.RouterGroup) {
 	authHandler := handlers.NewAuthHandler(authUseCases)
 	r.POST("/internal/v1/auth/login", authHandler.Login)
 	r.POST("/internal/v1/auth/refresh", authHandler.Refresh)
-	r.POST("/internal/v1/auth/logout", authHandler.Logout)
+
+	// protected (ต้องใช้ Bearer token)
+	authenGroup := r.Group("/", middleware.Authn())
+	authenGroup.POST("/internal/v1/auth/logout", authHandler.Logout)
 }
