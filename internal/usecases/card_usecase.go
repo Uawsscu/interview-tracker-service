@@ -6,6 +6,7 @@ import (
 
 	"interview-tracker/internal/adapters/repositories"
 	"interview-tracker/internal/entities"
+	"interview-tracker/internal/pkg/errs"
 
 	"github.com/google/uuid"
 )
@@ -24,13 +25,13 @@ func (uc *CardUsecase) Create(card *entities.Card) error {
 	if err := uc.repo.Create(card); err != nil {
 		return err
 	}
-	if err := uc.addHistory(card.CreatedBy, card.ID.String(), card.StatusCode, card.Description); err != nil {
+	if err := uc.addHistory(card.CreatedBy, card.ID, card.StatusCode, card.Description); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (uc *CardUsecase) UpdatePartial(id string, patch map[string]any) (*entities.Card, error) {
+func (uc *CardUsecase) UpdatePartial(id uuid.UUID, patch map[string]any) (*entities.Card, error) {
 	card, err := uc.repo.GetByID(id)
 	if err != nil {
 		return nil, err
@@ -49,13 +50,13 @@ func (uc *CardUsecase) UpdatePartial(id string, patch map[string]any) (*entities
 		return nil, err
 	}
 
-	if err := uc.addHistory(card.CreatedBy, card.ID.String(), card.StatusCode, card.Description); err != nil {
+	if err := uc.addHistory(card.CreatedBy, card.ID, card.StatusCode, card.Description); err != nil {
 		return nil, err
 	}
 	return card, nil
 }
 
-func (uc *CardUsecase) UpdateStatus(id, status string, actor uuid.UUID) (*entities.Card, error) {
+func (uc *CardUsecase) UpdateStatus(id uuid.UUID, status string, actor uuid.UUID) (*entities.Card, error) {
 	if status != "todo" && status != "in_progress" && status != "done" {
 		return nil, errors.New("invalid status")
 	}
@@ -76,7 +77,7 @@ func (uc *CardUsecase) UpdateStatus(id, status string, actor uuid.UUID) (*entiti
 	return card, nil
 }
 
-func (uc *CardUsecase) GetByID(id string) (*entities.Card, error) { return uc.repo.GetByID(id) }
+func (uc *CardUsecase) GetByID(id uuid.UUID) (*entities.Card, error) { return uc.repo.GetByID(id) }
 
 func (uc *CardUsecase) List(status string, page, size int) ([]*entities.Card, int64, error) {
 	return uc.repo.List(status, page, size)
@@ -95,11 +96,40 @@ func (uc *CardUsecase) AddComment(authorID uuid.UUID, cardID, content string) er
 	return uc.repo.AddComment(cmt)
 }
 
+func (uc *CardUsecase) UpdateComment(authorID, commentId uuid.UUID, content string) error {
+	comment, err := uc.repo.GetCommentByID(commentId)
+	if err != nil {
+		return err
+	}
+	if comment.AuthorID != authorID {
+		return errs.Unauthorized("unauthorized")
+	}
+	cmt := &entities.CardComment{
+		CardID:    comment.CardID,
+		AuthorID:  authorID,
+		Content:   content,
+		UpdatedAt: time.Now(),
+		UpdatedBy: authorID,
+	}
+	return uc.repo.UpdateComment(cmt)
+}
+
 func (uc *CardUsecase) ListComments(cardID string, page, size int) ([]*entities.CardComment, int64, error) {
 	return uc.repo.ListComments(cardID, page, size)
 }
 
-func (uc *CardUsecase) addHistory(actorID uuid.UUID, cardID, statusCode, description string) error {
+func (uc *CardUsecase) DeleteComment(authorID, commentId uuid.UUID) error {
+	comment, err := uc.repo.GetCommentByID(commentId)
+	if err != nil {
+		return err
+	}
+	if comment.AuthorID != authorID {
+		return errs.Unauthorized("unauthorized")
+	}
+	return uc.repo.DeleteCommentByID(commentId)
+}
+
+func (uc *CardUsecase) addHistory(actorID, cardID uuid.UUID, statusCode, description string) error {
 	p := &entities.CardHistoryLogs{
 		CardID:      cardID,
 		ActorID:     actorID,

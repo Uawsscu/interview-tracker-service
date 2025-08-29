@@ -3,18 +3,22 @@ package repositories
 import (
 	"interview-tracker/internal/entities"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type CardRepository interface {
 	Create(card *entities.Card) error
 	Update(card *entities.Card) error
-	GetByID(id string) (*entities.Card, error)
+	GetByID(id uuid.UUID) (*entities.Card, error)
 	List(status string, page, size int) ([]*entities.Card, int64, error)
 	DeleteCard(id string) error
 
 	AddComment(c *entities.CardComment) error
+	UpdateComment(c *entities.CardComment) error
+	GetCommentByID(commentId uuid.UUID) (*entities.CardComment, error)
 	ListComments(cardID string, page, size int) ([]*entities.CardComment, int64, error)
+	DeleteCommentByID(commentId uuid.UUID) error
 
 	AddHistory(p *entities.CardHistoryLogs) error
 	ListHistory(cardID string, page, size int) ([]*entities.CardHistoryLogs, int64, error)
@@ -28,7 +32,7 @@ func (r *cardRepo) Create(c *entities.Card) error { return r.db.Create(c).Error 
 
 func (r *cardRepo) Update(c *entities.Card) error { return r.db.Save(c).Error }
 
-func (r *cardRepo) GetByID(id string) (*entities.Card, error) {
+func (r *cardRepo) GetByID(id uuid.UUID) (*entities.Card, error) {
 	var card entities.Card
 	if err := r.db.First(&card, "id = ?", id).Error; err != nil {
 		return nil, err
@@ -72,6 +76,10 @@ func (r *cardRepo) ListComments(cardID string, page, size int) ([]*entities.Card
 	return list, total, nil
 }
 
+func (r *cardRepo) DeleteCommentByID(commentId uuid.UUID) error {
+	return r.db.Delete(&entities.CardComment{}, "id = ?", commentId).Error
+}
+
 func (r *cardRepo) AddHistory(p *entities.CardHistoryLogs) error {
 	return r.db.Create(p).Error
 }
@@ -91,4 +99,23 @@ func (r *cardRepo) ListHistory(cardID string, page, size int) ([]*entities.CardH
 
 func (r *cardRepo) DeleteCard(id string) error {
 	return r.db.Delete(&entities.Card{}, "id = ?", id).Error
+}
+
+func (r *cardRepo) UpdateComment(c *entities.CardComment) error {
+	return r.db.Model(&entities.CardComment{}).
+		Where("id = ?", c.ID).
+		Updates(map[string]interface{}{
+			"content":    c.Content,
+			"author_id":  c.AuthorID,
+			"updated_at": c.UpdatedAt,
+			"updated_by": c.UpdatedBy,
+		}).Error
+}
+
+func (r *cardRepo) GetCommentByID(commentId uuid.UUID) (*entities.CardComment, error) {
+	var comment entities.CardComment
+	if err := r.db.First(&comment, "id = ?", commentId).Error; err != nil {
+		return nil, err
+	}
+	return &comment, nil
 }
