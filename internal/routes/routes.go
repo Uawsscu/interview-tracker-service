@@ -11,4 +11,5 @@ func Listen(eg *gin.Engine) {
 
 	routers.Health(interviewTrackerGroup)
 	routers.User(interviewTrackerGroup)
+	routers.Auth(interviewTrackerGroup)
 }

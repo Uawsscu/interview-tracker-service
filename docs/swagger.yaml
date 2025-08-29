@@ -1,5 +1,36 @@
 basePath: /
 definitions:
+  auth_models.LoginReq:
+    properties:
+      email:
+        example: example@example.com
+        type: string
+      password:
+        example: P@ssw0rd
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  auth_models.RefreshReq:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
+  auth_models.TokenResponse:
+    properties:
+      access_token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6Ikp..
+        type: string
+      ref_id:
+        example: b2a8f4e5-9e3b-4c2b-9e0f-7b2c1a6d1f33
+        type: string
+      refresh_token:
+        example: 0b83305f-75b2-4e89-a444-70da68f84d4f.0224f190-0f9a-46a4-a0fc-521fcc07e2ee..
+        type: string
+    type: object
   entities.Role:
     properties:
       code:
@@ -95,6 +126,66 @@ paths:
       summary: Health check
       tags:
       - health
+  /interview-tracker/internal/v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and issue access/refresh tokens (JWT access token
+        has only sub/exp/iat/iss)
+      parameters:
+      - description: login JSON
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth_models.LoginReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/auth_models.TokenResponse'
+      summary: Login
+      tags:
+      - auth
+  /interview-tracker/internal/v1/auth/logout:
+    post:
+      description: Revoke session and all refresh tokens for current refID
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Logout
+      tags:
+      - auth
+  /interview-tracker/internal/v1/auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Rotate refresh token and issue a new access token
+      parameters:
+      - description: refresh JSON
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth_models.RefreshReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/auth_models.TokenResponse'
+      summary: Refresh token
+      tags:
+      - auth
   /interview-tracker/internal/v1/users/create:
     post:
       consumes:
@@ -110,10 +201,16 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        "201":
           description: Success response
           schema:
             $ref: '#/definitions/user_models.CreateUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       summary: Create user
       tags:
       - users
@@ -129,11 +226,19 @@ paths:
         name: userId
         required: true
         type: string
+      produces:
+      - application/json
       responses:
         "200":
           description: Successful response
           schema:
             $ref: '#/definitions/entities.User'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       summary: Get user By ID
       tags:
       - users
@@ -142,11 +247,21 @@ paths:
       consumes:
       - application/json
       description: Get role
+      produces:
+      - application/json
       responses:
         "200":
           description: Successful response
           schema:
-            $ref: '#/definitions/entities.Role'
+            items:
+              $ref: '#/definitions/entities.Role'
+            type: array
+        "500":
+          description: Server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       summary: Get role
       tags:
       - users

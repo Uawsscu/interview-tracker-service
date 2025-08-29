@@ -34,7 +34,7 @@ func (u *UserUsecase) CreateUser(item user_models.CreateUserRequest) (*entities.
 
 	// ---- build payload ----
 	var currentDtm = time.Now()
-	var userAdminDefault = config.LoadConfig().UserAdminDefault
+	var userAdminDefault = config.EnvConfig.UserAdminDefault
 	payload := entities.User{
 		Name:      item.Name,
 		Email:     item.Email,
