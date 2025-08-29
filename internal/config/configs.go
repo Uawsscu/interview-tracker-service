@@ -12,7 +12,6 @@ import (
 var EnvConfig *Config
 
 type Config struct {
-	UserAdminDefault string
 	DatabaseUrl      string
 	HttpPort         string
 	RedisAddr        string
@@ -32,7 +31,6 @@ func LoadConfig() {
 		panic(err)
 	}
 	EnvConfig = &Config{
-		UserAdminDefault: os.Getenv("USER_ADMIN_DEFAULT"),
 		DatabaseUrl:      os.Getenv("DATABASE_URL"),
 		HttpPort:         os.Getenv("HTTP_PORT"),
 		RedisAddr:        os.Getenv("REDIS_ADDR"),

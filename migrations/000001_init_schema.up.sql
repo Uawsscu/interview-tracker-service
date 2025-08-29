@@ -5,8 +5,6 @@ CREATE TABLE IF NOT EXISTS users (
   password    text NOT NULL,            -- เก็บ hash
   role_id     uuid NOT NULL,
   is_active   boolean NOT NULL DEFAULT true,
-  created_by  uuid NULL REFERENCES users(id) ON DELETE SET NULL,
-  updated_by  uuid NULL REFERENCES users(id) ON DELETE SET NULL,
   created_at  timestamptz NOT NULL DEFAULT now(),
   updated_at  timestamptz NOT NULL DEFAULT now()
 );
@@ -54,8 +52,6 @@ COMMENT ON COLUMN users.email IS 'อีเมลของผู้ใช้';
 COMMENT ON COLUMN users.password IS 'รหัสผ่าน (เก็บ hash)';
 COMMENT ON COLUMN users.role_id IS 'อ้างอิงไปยังตาราง roles';
 COMMENT ON COLUMN users.is_active IS 'สถานะผู้ใช้ (true=ใช้งาน, false=ปิดการใช้งาน)';
-COMMENT ON COLUMN users.created_by IS 'UUID ของผู้สร้าง record';
-COMMENT ON COLUMN users.updated_by IS 'UUID ของผู้แก้ไข record ล่าสุด';
 COMMENT ON COLUMN users.created_at IS 'วันและเวลาที่สร้าง record';
 COMMENT ON COLUMN users.updated_at IS 'วันและเวลาที่แก้ไข record ล่าสุด';
 

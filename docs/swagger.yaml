@@ -107,8 +107,6 @@ definitions:
     properties:
       created_at:
         type: string
-      created_by:
-        type: string
       email:
         type: string
       id:
@@ -122,8 +120,6 @@ definitions:
       role_id:
         type: string
       updated_at:
-        type: string
-      updated_by:
         type: string
     type: object
   user_models.CreateUserRequest:
