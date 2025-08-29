@@ -38,6 +38,7 @@ func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf("Error loading .env file")
 	}
+	config.LoadConfig()
 	logs.LoggerConfig()
 	config.ConnectDB()
 	router := gin.New()
@@ -50,6 +51,7 @@ func main() {
 	router.Use(config.LogStartTimeMiddleware())
 
 	config.SwaggerConfig(router)
+	config.NewRedis()
 
 	router.Use(CORSAllow())
 	routes.Listen(router)

@@ -1,8 +1,9 @@
 package handlers
 
 import (
+	"net/http"
+
 	"interview-tracker/internal/models/user_models"
-	common_body "interview-tracker/internal/pkg/body"
 	"interview-tracker/internal/pkg/logs"
 	"interview-tracker/internal/pkg/utils"
 	"interview-tracker/internal/usecases"
@@ -24,60 +25,78 @@ func NewUserHandler(usecase *usecases.UserUsecase) *UserHandler {
 // @Produce      json
 // @Tags         users
 // @Param        request  body  user_models.CreateUserRequest  true  "user create JSON"
-// @Success      200      {object} user_models.CreateUserResponse  "Success response"
+// @Success      201      {object} user_models.CreateUserResponse  "Success response"
+// @Failure      400      {object} map[string]string "Bad Request"
 // @Router       /interview-tracker/internal/v1/users/create [post]
 func (h *UserHandler) Create(c *gin.Context) {
-	logs.Logger.Printf("[user] create star...")
+	logs.Logger.Printf("[user] create start...")
 
 	var request user_models.CreateUserRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		logs.Logger.Printf("[user] create bind error: %v", err)
-		common_body.ReturnResponse(c, nil, err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if mapErr := utils.ValidateRequest(request); mapErr != nil { // หรือ &request ตาม validator ของคุณ
+	if mapErr := utils.ValidateRequest(request); mapErr != nil {
 		logs.Logger.Printf("[user] create validate error: %+v", mapErr)
-		common_body.ReturnResponse(c, nil, mapErr)
+		c.JSON(http.StatusBadRequest, gin.H{"error": mapErr})
 		return
 	}
 
 	res, err := h.usecase.CreateUser(request)
 	if err != nil {
 		logs.Logger.Printf("[user] create failed: %v", err)
-	} else {
-		logs.Logger.Printf("[user] create success")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
-	common_body.ReturnResponse(c, res, err)
+
+	logs.Logger.Printf("[user] create success")
+	c.JSON(http.StatusCreated, res)
 }
 
 // @Summary Get user By ID
 // @Description  Get user By ID
 // @Accept json
+// @Produce json
 // @Tags users
 // @Param userId path string true "User ID" default(888f2c6b-cc1a-4e94-bd6e-d8ba0ac36fc3)
 // @Success 200 {object} entities.User "Successful response"
+// @Failure 404 {object} map[string]string "Not Found"
 // @Router /interview-tracker/internal/v1/users/details/{userId} [get]
 func (h *UserHandler) GetById(c *gin.Context) {
 	logs.Logger.Printf("[user] GetById start....")
 
 	userId := c.Param("userId")
 	resp, err := h.usecase.GetUserById(userId)
-	logs.Logger.Printf("[user] GetById success....")
+	if err != nil {
+		logs.Logger.Printf("[user] GetById failed: %v", err)
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
 
-	common_body.ReturnResponse(c, resp, err)
+	logs.Logger.Printf("[user] GetById success....")
+	c.JSON(http.StatusOK, resp)
 }
 
 // @Summary Get role
 // @Description  Get role
 // @Accept json
+// @Produce json
 // @Tags users
-// @Success 200 {object} entities.Role "Successful response"
+// @Success 200 {array} entities.Role "Successful response"
+// @Failure 500 {object} map[string]string "Server error"
 // @Router /interview-tracker/internal/v1/users/role-list [get]
 func (h *UserHandler) GetListRole(c *gin.Context) {
 	logs.Logger.Printf("[user] ListRole start....")
-	resp, err := h.usecase.GetRoleList()
-	logs.Logger.Printf("[user] ListRole success....")
 
-	common_body.ReturnResponse(c, resp, err)
+	resp, err := h.usecase.GetRoleList()
+	if err != nil {
+		logs.Logger.Printf("[user] ListRole failed: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	logs.Logger.Printf("[user] ListRole success....")
+	c.JSON(http.StatusOK, resp)
 }

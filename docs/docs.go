@@ -35,6 +35,99 @@ const docTemplate = `{
                 }
             }
         },
+        "/interview-tracker/internal/v1/auth/login": {
+            "post": {
+                "description": "Authenticate user and issue access/refresh tokens (JWT access token has only sub/exp/iat/iss)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Login",
+                "parameters": [
+                    {
+                        "description": "login JSON",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth_models.LoginReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/auth_models.TokenResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/interview-tracker/internal/v1/auth/logout": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Revoke session and all refresh tokens for current refID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Logout",
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/interview-tracker/internal/v1/auth/refresh": {
+            "post": {
+                "description": "Rotate refresh token and issue a new access token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Refresh token",
+                "parameters": [
+                    {
+                        "description": "refresh JSON",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth_models.RefreshReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/auth_models.TokenResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/interview-tracker/internal/v1/users/create": {
             "post": {
                 "description": "Create user for",
@@ -60,10 +153,19 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "201": {
                         "description": "Success response",
                         "schema": {
                             "$ref": "#/definitions/user_models.CreateUserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }
@@ -73,6 +175,9 @@ const docTemplate = `{
             "get": {
                 "description": "Get user By ID",
                 "consumes": [
+                    "application/json"
+                ],
+                "produces": [
                     "application/json"
                 ],
                 "tags": [
@@ -95,6 +200,15 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/entities.User"
                         }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     }
                 }
             }
@@ -105,6 +219,9 @@ const docTemplate = `{
                 "consumes": [
                     "application/json"
                 ],
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "users"
                 ],
@@ -113,7 +230,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Successful response",
                         "schema": {
-                            "$ref": "#/definitions/entities.Role"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entities.Role"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }
@@ -121,6 +250,51 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "auth_models.LoginReq": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "example@example.com"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "P@ssw0rd"
+                }
+            }
+        },
+        "auth_models.RefreshReq": {
+            "type": "object",
+            "required": [
+                "refresh_token"
+            ],
+            "properties": {
+                "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "auth_models.TokenResponse": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6Ikp.."
+                },
+                "ref_id": {
+                    "type": "string",
+                    "example": "b2a8f4e5-9e3b-4c2b-9e0f-7b2c1a6d1f33"
+                },
+                "refresh_token": {
+                    "type": "string",
+                    "example": "0b83305f-75b2-4e89-a444-70da68f84d4f.0224f190-0f9a-46a4-a0fc-521fcc07e2ee.."
+                }
+            }
+        },
         "entities.Role": {
             "type": "object",
             "properties": {
