@@ -67,16 +67,23 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 }
 
 // @Summary      Logout
-// @Description  Revoke session and all refresh tokens for current refID
+// @Description  Revoke current session using access token (refID is taken from JWT `sub`)
 // @Tags         auth
 // @Security     BearerAuth
 // @Produce      json
-// @Success      200 {string} string "success"
+// @Success      200  {object}  map[string]string  "ok"
+// @Failure      401  {object}  map[string]string  "unauthorized"
+// @Failure      500  {object}  map[string]string  "logout failed"
 // @Router       /interview-tracker/internal/v1/auth/logout [post]
 func (h *AuthHandler) Logout(c *gin.Context) {
-	logs.Logger.Printf("[auth] logout start...")
-	refID := c.GetString("refID")
-	_ = h.auth.Logout(c, refID)
+	refID := c.GetString("refID") // set โดย auth middleware หลัง verify JWT
+	if refID == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+	if err := h.auth.Logout(c, refID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "logout failed"})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
-	logs.Logger.Printf("[auth] logout success...")
 }

@@ -151,14 +151,29 @@ paths:
       - auth
   /interview-tracker/internal/v1/auth/logout:
     post:
-      description: Revoke session and all refresh tokens for current refID
+      description: Revoke current session using access token (refID is taken from
+        JWT `sub`)
       produces:
       - application/json
       responses:
         "200":
-          description: success
+          description: ok
           schema:
-            type: string
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: logout failed
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       security:
       - BearerAuth: []
       summary: Logout
@@ -265,4 +280,9 @@ paths:
       summary: Get role
       tags:
       - users
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

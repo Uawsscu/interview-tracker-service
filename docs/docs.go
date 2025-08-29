@@ -76,7 +76,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Revoke session and all refresh tokens for current refID",
+                "description": "Revoke current session using access token (refID is taken from JWT ` + "`" + `sub` + "`" + `)",
                 "produces": [
                     "application/json"
                 ],
@@ -86,9 +86,30 @@ const docTemplate = `{
                 "summary": "Logout",
                 "responses": {
                     "200": {
-                        "description": "success",
+                        "description": "ok",
                         "schema": {
-                            "type": "string"
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "logout failed",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }
@@ -406,6 +427,13 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`

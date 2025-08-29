@@ -117,6 +117,7 @@ func (s *authUsecase) Refresh(ctx context.Context, refreshToken string) (string,
 
 func (s *authUsecase) Logout(ctx context.Context, refID string) error {
 	_ = s.rdb.Del(ctx, "session:"+refID).Err()
+
 	iter := s.rdb.Scan(ctx, 0, "rt:*", 1000).Iterator()
 	for iter.Next(ctx) {
 		key := iter.Val()

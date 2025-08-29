@@ -5,6 +5,9 @@ package main
 // @description API for Interview Tracker
 // @BasePath /
 
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 import (
 	"fmt"
 	"interview-tracker/internal/config"
