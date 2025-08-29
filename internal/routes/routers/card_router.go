@@ -30,6 +30,7 @@ func Card(r *gin.RouterGroup) {
 		// comments
 		g.POST("/cards/:id/comments", middleware.Authorize("comment_add"), h.AddComment)
 		g.PATCH("/cards/comments/:commentId", middleware.Authorize("comment_edit"), h.UpdateComment)
+		g.DELETE("/cards/comments/:commentId", middleware.Authorize("comment_edit"), h.DeleteComment)
 		g.GET("/cards/:id/comments", middleware.Authorize("comment_view"), h.ListComments)
 
 		// History

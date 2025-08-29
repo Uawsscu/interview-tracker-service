@@ -118,6 +118,17 @@ func (uc *CardUsecase) ListComments(cardID string, page, size int) ([]*entities.
 	return uc.repo.ListComments(cardID, page, size)
 }
 
+func (uc *CardUsecase) DeleteComment(authorID, commentId uuid.UUID) error {
+	comment, err := uc.repo.GetCommentByID(commentId)
+	if err != nil {
+		return err
+	}
+	if comment.AuthorID != authorID {
+		return errs.Unauthorized("unauthorized")
+	}
+	return uc.repo.DeleteCommentByID(commentId)
+}
+
 func (uc *CardUsecase) addHistory(actorID, cardID uuid.UUID, statusCode, description string) error {
 	p := &entities.CardHistoryLogs{
 		CardID:      cardID,

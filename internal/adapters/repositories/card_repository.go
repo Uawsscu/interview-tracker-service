@@ -18,6 +18,7 @@ type CardRepository interface {
 	UpdateComment(c *entities.CardComment) error
 	GetCommentByID(commentId uuid.UUID) (*entities.CardComment, error)
 	ListComments(cardID string, page, size int) ([]*entities.CardComment, int64, error)
+	DeleteCommentByID(commentId uuid.UUID) error
 
 	AddHistory(p *entities.CardHistoryLogs) error
 	ListHistory(cardID string, page, size int) ([]*entities.CardHistoryLogs, int64, error)
@@ -73,6 +74,10 @@ func (r *cardRepo) ListComments(cardID string, page, size int) ([]*entities.Card
 		return nil, 0, err
 	}
 	return list, total, nil
+}
+
+func (r *cardRepo) DeleteCommentByID(commentId uuid.UUID) error {
+	return r.db.Delete(&entities.CardComment{}, "id = ?", commentId).Error
 }
 
 func (r *cardRepo) AddHistory(p *entities.CardHistoryLogs) error {

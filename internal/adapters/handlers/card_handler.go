@@ -230,6 +230,35 @@ func (h *CardHandler) ListComments(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"items": items, "total": total, "page": page, "page_size": size})
 }
 
+// @Summary Delete comment
+// @Tags comments
+// @Security BearerAuth
+// @Produce json
+// @Param commentId path string true "commentId"
+// @Success 200 {object} map[string]any
+// @Router /interview-tracker/authen/cards/comments/{commentId} [delete]
+func (h *CardHandler) DeleteComment(c *gin.Context) {
+	idReq := c.Param("commentId")
+	id, err := uuid.Parse(idReq)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid commentId"})
+		return
+	}
+
+	session := middleware.GetSession(c)
+
+	if err := h.uc.DeleteComment(session.UserID, id); err != nil {
+		if herr, ok := err.(*errs.HttpError); ok {
+			c.JSON(herr.Code, gin.H{"error": herr.Message})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "ok"})
+}
+
 // @Summary จัดเก็บ
 // @Tags cards
 // @Security BearerAuth
