@@ -271,7 +271,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/interview-tracker/authen/cards/{id}/progress": {
+        "/interview-tracker/authen/cards/{id}/history": {
             "get": {
                 "security": [
                     {
@@ -282,9 +282,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "progress"
+                    "cards"
                 ],
-                "summary": "List progress logs",
+                "summary": "list history ogs",
                 "parameters": [
                     {
                         "type": "string",
@@ -315,7 +315,9 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
+            }
+        },
+        "/interview-tracker/authen/cards/{id}/keep": {
             "post": {
                 "security": [
                     {
@@ -329,9 +331,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "progress"
+                    "cards"
                 ],
-                "summary": "Add progress log",
+                "summary": "จัดเก็บ",
                 "parameters": [
                     {
                         "type": "string",
@@ -339,15 +341,6 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "description": "progress message",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/card_models.AddProgressReq"
-                        }
                     }
                 ],
                 "responses": {
@@ -717,18 +710,6 @@ const docTemplate = `{
                 "content": {
                     "type": "string",
                     "example": "ควรปรับปรุง portfolio ให้ละเอียดขึ้น"
-                }
-            }
-        },
-        "card_models.AddProgressReq": {
-            "type": "object",
-            "required": [
-                "message"
-            ],
-            "properties": {
-                "message": {
-                    "type": "string",
-                    "example": "อัปเดตสถานะเป็น In Progress เมื่อวันที่ 2023-01-01 15:00"
                 }
             }
         },

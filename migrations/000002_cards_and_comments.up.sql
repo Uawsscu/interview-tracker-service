@@ -41,11 +41,12 @@ CREATE TABLE IF NOT EXISTS card_comments (
 );
 
 -- ประวัติความคืบหน้า/กิจกรรมของการ์ด
-CREATE TABLE IF NOT EXISTS card_progress_logs (
-  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),       -- รหัส log (UUID)
-  card_id    uuid NOT NULL REFERENCES cards(id) ON DELETE CASCADE, -- อ้างอิงไปยังการ์ด
-  actor_id   uuid NOT NULL REFERENCES users(id) ON DELETE RESTRICT, -- ผู้กระทำ
-  message    text NOT NULL,                                    -- รายละเอียดข้อความ log
+CREATE TABLE IF NOT EXISTS card_history_logs (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  card_id       uuid NOT NULL,                                         
+  actor_id      uuid NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+  status_code   text,       
+  description   text,                                               
   is_active     boolean NOT NULL DEFAULT true,
   created_by    uuid NULL REFERENCES users(id) ON DELETE SET NULL,
   updated_by    uuid NULL REFERENCES users(id) ON DELETE SET NULL,
@@ -56,16 +57,16 @@ CREATE TABLE IF NOT EXISTS card_progress_logs (
 -- ดัชนี
 CREATE INDEX IF NOT EXISTS idx_cards_status ON cards(status_code);
 CREATE INDEX IF NOT EXISTS idx_comments_card ON card_comments(card_id);
-CREATE INDEX IF NOT EXISTS idx_progress_card ON card_progress_logs(card_id);
+CREATE INDEX IF NOT EXISTS idx_history_card ON card_history_logs(card_id);
 
 -- ======================
 -- COMMENTS
 -- ======================
 
 -- ตารางสถานะ
-COMMENT ON TABLE card_statuses IS 'ตารางเก็บสถานะของการ์ด (To Do, In Progress, Done)';
+COMMENT ON TABLE card_statuses IS 'ตารางเก็บสถานะของการ์ด (To Do, In history, Done)';
 COMMENT ON COLUMN card_statuses.status_code IS 'รหัสสถานะ เช่น todo, in_progress, done';
-COMMENT ON COLUMN card_statuses.name IS 'ชื่อสถานะ เช่น To Do, In Progress';
+COMMENT ON COLUMN card_statuses.name IS 'ชื่อสถานะ เช่น To Do, In history';
 COMMENT ON COLUMN card_statuses.description IS 'คำอธิบายเพิ่มเติมของสถานะ';
 
 -- ตารางการ์ด
@@ -90,9 +91,8 @@ COMMENT ON COLUMN card_comments.created_at IS 'วันและเวลาท
 COMMENT ON COLUMN card_comments.updated_at IS 'วันและเวลาที่แก้ไขคอมเมนต์ล่าสุด';
 
 -- ตาราง log ความคืบหน้า
-COMMENT ON TABLE card_progress_logs IS 'ตารางบันทึกความคืบหน้าและกิจกรรมของการ์ด';
-COMMENT ON COLUMN card_progress_logs.id IS 'รหัส log (UUID)';
-COMMENT ON COLUMN card_progress_logs.card_id IS 'อ้างอิงไปยังการ์ด';
-COMMENT ON COLUMN card_progress_logs.actor_id IS 'UUID ของผู้กระทำ (เช่น ผู้แก้ไข)';
-COMMENT ON COLUMN card_progress_logs.message IS 'ข้อความอธิบายการเปลี่ยนแปลงหรือกิจกรรม';
-COMMENT ON COLUMN card_progress_logs.created_at IS 'วันและเวลาที่บันทึก log';
+COMMENT ON TABLE card_history_logs IS 'ตารางบันทึกความคืบหน้าและกิจกรรมของการ์ด';
+COMMENT ON COLUMN card_history_logs.id IS 'รหัส log (UUID)';
+COMMENT ON COLUMN card_history_logs.card_id IS 'อ้างอิงไปยังการ์ด';
+COMMENT ON COLUMN card_history_logs.actor_id IS 'UUID ของผู้กระทำ (เช่น ผู้แก้ไข)';
+COMMENT ON COLUMN card_history_logs.created_at IS 'วันและเวลาที่บันทึก log';

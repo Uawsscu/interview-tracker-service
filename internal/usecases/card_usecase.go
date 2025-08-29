@@ -21,7 +21,13 @@ func (uc *CardUsecase) Create(card *entities.Card) error {
 	card.StatusCode = "todo"
 	card.CreatedAt = txnDtm
 	card.UpdatedAt = txnDtm
-	return uc.repo.Create(card)
+	if err := uc.repo.Create(card); err != nil {
+		return err
+	}
+	if err := uc.addHistory(card.CreatedBy, card.ID.String(), card.StatusCode, card.Description); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (uc *CardUsecase) UpdatePartial(id string, patch map[string]any) (*entities.Card, error) {
@@ -42,6 +48,10 @@ func (uc *CardUsecase) UpdatePartial(id string, patch map[string]any) (*entities
 	if err := uc.repo.Update(card); err != nil {
 		return nil, err
 	}
+
+	if err := uc.addHistory(card.CreatedBy, card.ID.String(), card.StatusCode, card.Description); err != nil {
+		return nil, err
+	}
 	return card, nil
 }
 
@@ -59,13 +69,10 @@ func (uc *CardUsecase) UpdateStatus(id, status string, actor uuid.UUID) (*entiti
 		return nil, err
 	}
 
-	// log progress
-	_ = uc.repo.AddProgress(&entities.CardProgressLogs{
-		CardID:    id,
-		ActorID:   actor,
-		Message:   "status changed to " + status,
-		CreatedAt: time.Now(),
-	})
+	// add history
+	if err := uc.addHistory(actor, id, card.StatusCode, card.Description); err != nil {
+		return nil, err
+	}
 	return card, nil
 }
 
@@ -82,6 +89,8 @@ func (uc *CardUsecase) AddComment(authorID uuid.UUID, cardID, content string) er
 		Content:   content,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
+		CreatedBy: authorID,
+		UpdatedBy: authorID,
 	}
 	return uc.repo.AddComment(cmt)
 }
@@ -90,16 +99,24 @@ func (uc *CardUsecase) ListComments(cardID string, page, size int) ([]*entities.
 	return uc.repo.ListComments(cardID, page, size)
 }
 
-func (uc *CardUsecase) AddProgress(actorID uuid.UUID, cardID, msg string) error {
-	p := &entities.CardProgressLogs{
-		CardID:    cardID,
-		ActorID:   actorID,
-		Message:   msg,
-		CreatedAt: time.Now(),
+func (uc *CardUsecase) addHistory(actorID uuid.UUID, cardID, statusCode, description string) error {
+	p := &entities.CardHistoryLogs{
+		CardID:      cardID,
+		ActorID:     actorID,
+		StatusCode:  statusCode,
+		Description: description,
+		CreatedBy:   actorID,
+		UpdatedBy:   actorID,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
 	}
-	return uc.repo.AddProgress(p)
+	return uc.repo.AddHistory(p)
 }
 
-func (uc *CardUsecase) ListProgress(cardID string, page, size int) ([]*entities.CardProgressLogs, int64, error) {
-	return uc.repo.ListProgress(cardID, page, size)
+func (uc *CardUsecase) ListHistory(cardID string, page, size int) ([]*entities.CardHistoryLogs, int64, error) {
+	return uc.repo.ListHistory(cardID, page, size)
+}
+
+func (uc *CardUsecase) Keep(cardID string) error {
+	return uc.repo.DeleteCard(cardID)
 }

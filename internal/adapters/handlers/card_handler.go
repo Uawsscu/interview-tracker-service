@@ -81,6 +81,7 @@ func (h *CardHandler) Create(c *gin.Context) {
 		CandidateName: session.Email,
 		ScheduledAt:   req.ScheduledAt,
 		CreatedBy:     session.UserID,
+		UpdatedBy:     session.UserID,
 	}
 	if err := h.uc.Create(card); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -193,44 +194,39 @@ func (h *CardHandler) ListComments(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"items": items, "total": total, "page": page, "page_size": size})
 }
 
-// @Summary Add progress log
-// @Tags progress
+// @Summary จัดเก็บ
+// @Tags cards
 // @Security BearerAuth
 // @Accept json
 // @Produce json
 // @Param id path string true "card id"
-// @Param request body card_models.AddProgressReq true "progress message"
 // @Success 200 {object} map[string]any
-// @Router /interview-tracker/authen/cards/{id}/progress [post]
-func (h *CardHandler) AddProgress(c *gin.Context) {
+// @Router /interview-tracker/authen/cards/{id}/keep [post]
+func (h *CardHandler) Keep(c *gin.Context) {
 	id := c.Param("id")
-	var req card_models.AddProgressReq
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	session := middleware.GetSession(c)
-	if err := h.uc.AddProgress(session.UserID, id, req.Message); err != nil {
+
+	// session := middleware.GetSession(c)
+	if err := h.uc.Keep(id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
 
-// @Summary List progress logs
-// @Tags progress
+// @Summary list history logs
+// @Tags cards
 // @Security BearerAuth
 // @Produce json
 // @Param id path string true "card id"
 // @Param page query int false "page"
 // @Param page_size query int false "size"
 // @Success 200 {object} map[string]any
-// @Router /interview-tracker/authen/cards/{id}/progress [get]
-func (h *CardHandler) ListProgress(c *gin.Context) {
+// @Router /interview-tracker/authen/cards/{id}/history [get]
+func (h *CardHandler) ListHistory(c *gin.Context) {
 	id := c.Param("id")
 	page := atoiDefault(c.Query("page"), 1)
 	size := atoiDefault(c.Query("page_size"), 10)
-	items, total, err := h.uc.ListProgress(id, page, size)
+	items, total, err := h.uc.ListHistory(id, page, size)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

@@ -30,7 +30,3 @@ type UpdateCardStatusReq struct {
 type AddCommentReq struct {
 	Content string `json:"content" binding:"required" example:"ควรปรับปรุง portfolio ให้ละเอียดขึ้น"`
 }
-
-type AddProgressReq struct {
-	Message string `json:"message" binding:"required" example:"อัปเดตสถานะเป็น In Progress เมื่อวันที่ 2023-01-01 15:00"`
-}

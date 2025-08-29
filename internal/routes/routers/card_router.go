@@ -31,8 +31,8 @@ func Card(r *gin.RouterGroup) {
 		g.POST("/cards/:id/comments", middleware.Authorize("comment_add"), h.AddComment)
 		g.GET("/cards/:id/comments", middleware.Authorize("comment_view"), h.ListComments)
 
-		// progress
-		g.POST("/cards/:id/progress", middleware.Authorize("card_edit"), h.AddProgress)
-		g.GET("/cards/:id/progress", middleware.Authorize("card_view"), h.ListProgress)
+		// History
+		g.POST("/cards/:id/keep", middleware.Authorize("card_edit"), h.Keep)
+		g.GET("/cards/:id/history", middleware.Authorize("card_view"), h.ListHistory)
 	}
 }

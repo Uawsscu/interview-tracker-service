@@ -39,14 +39,6 @@ definitions:
     required:
     - content
     type: object
-  card_models.AddProgressReq:
-    properties:
-      message:
-        example: อัปเดตสถานะเป็น In Progress เมื่อวันที่ 2023-01-01 15:00
-        type: string
-    required:
-    - message
-    type: object
   card_models.CreateCardReq:
     properties:
       description:
@@ -326,7 +318,7 @@ paths:
       summary: Add comment
       tags:
       - comments
-  /interview-tracker/authen/cards/{id}/progress:
+  /interview-tracker/authen/cards/{id}/history:
     get:
       parameters:
       - description: card id
@@ -352,9 +344,10 @@ paths:
             type: object
       security:
       - BearerAuth: []
-      summary: List progress logs
+      summary: list history ogs
       tags:
-      - progress
+      - cards
+  /interview-tracker/authen/cards/{id}/keep:
     post:
       consumes:
       - application/json
@@ -364,12 +357,6 @@ paths:
         name: id
         required: true
         type: string
-      - description: progress message
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/card_models.AddProgressReq'
       produces:
       - application/json
       responses:
@@ -380,9 +367,9 @@ paths:
             type: object
       security:
       - BearerAuth: []
-      summary: Add progress log
+      summary: จัดเก็บ
       tags:
-      - progress
+      - cards
   /interview-tracker/authen/cards/{id}/status:
     patch:
       consumes:
