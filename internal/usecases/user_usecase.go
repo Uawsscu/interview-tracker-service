@@ -1,10 +1,11 @@
 package usecases
 
 import (
+	"errors"
 	"interview-tracker/internal/adapters/repositories"
-	"interview-tracker/internal/config"
 	"interview-tracker/internal/entities"
 	"interview-tracker/internal/models/user_models"
+	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -23,9 +24,22 @@ func NewUserUsecase(userRepo repositories.UserRepository, roleRepo repositories.
 }
 
 func (u *UserUsecase) CreateUser(item user_models.CreateUserRequest) (*entities.User, error) {
-	// TODO check duplicate email
-	// TODO check exists roleId
+	// normalize
+	email := strings.TrimSpace(strings.ToLower(item.Email))
 
+	// ---- check duplicate email ----
+	if existing, _ := u.userRepo.GetByEmail(email); existing != nil {
+		return nil, errors.New("email already in use")
+	}
+
+	// ---- check exists roleId ----
+	ok, err := u.roleRepo.ExistsByID(item.RoleID)
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		return nil, errors.New("role not found")
+	}
 	// ---- hash password ----
 	hashed, err := bcrypt.GenerateFromPassword([]byte(item.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -34,15 +48,12 @@ func (u *UserUsecase) CreateUser(item user_models.CreateUserRequest) (*entities.
 
 	// ---- build payload ----
 	var currentDtm = time.Now()
-	var userAdminDefault = config.EnvConfig.UserAdminDefault
 	payload := entities.User{
 		Name:      item.Name,
 		Email:     item.Email,
 		Password:  string(hashed),
 		RoleID:    item.RoleID,
 		IsActive:  true,
-		CreatedBy: userAdminDefault,
-		UpdatedBy: userAdminDefault,
 		CreatedAt: currentDtm,
 		UpdatedAt: currentDtm,
 	}
