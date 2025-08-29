@@ -20,10 +20,11 @@ CREATE TABLE IF NOT EXISTS cards (
   candidate_name text NOT NULL,                               -- ชื่อผู้สมัครงาน
   scheduled_at   timestamptz NOT NULL,                        -- วันและเวลาที่นัดสัมภาษณ์
   status_code    text NOT NULL REFERENCES card_statuses(status_code), -- สถานะอ้างอิงจาก card_statuses
-  created_by     uuid NOT NULL REFERENCES users(id) ON DELETE RESTRICT, -- ผู้สร้าง
-  assignee_id    uuid NULL REFERENCES users(id) ON DELETE SET NULL,     -- ผู้รับผิดชอบ
-  created_at     timestamptz NOT NULL DEFAULT now(),           -- วันและเวลาที่สร้าง
-  updated_at     timestamptz NOT NULL DEFAULT now()            -- วันและเวลาที่แก้ไขล่าสุด
+  is_active     boolean NOT NULL DEFAULT true,
+  created_by    uuid NULL REFERENCES users(id) ON DELETE SET NULL,
+  updated_by    uuid NULL REFERENCES users(id) ON DELETE SET NULL,
+  created_at    timestamptz NOT NULL DEFAULT now(),
+  updated_at    timestamptz NOT NULL DEFAULT now()
 );
 
 -- ความคิดเห็นของการ์ด
@@ -32,8 +33,11 @@ CREATE TABLE IF NOT EXISTS card_comments (
   card_id    uuid NOT NULL REFERENCES cards(id) ON DELETE CASCADE, -- อ้างอิงไปยังการ์ด
   author_id  uuid NOT NULL REFERENCES users(id) ON DELETE RESTRICT, -- ผู้เขียนคอมเมนต์
   content    text NOT NULL,                                    -- เนื้อหาคอมเมนต์
-  created_at timestamptz NOT NULL DEFAULT now(),               -- วันและเวลาที่สร้าง
-  updated_at timestamptz NOT NULL DEFAULT now()                -- วันและเวลาที่แก้ไขล่าสุด
+  is_active     boolean NOT NULL DEFAULT true,
+  created_by    uuid NULL REFERENCES users(id) ON DELETE SET NULL,
+  updated_by    uuid NULL REFERENCES users(id) ON DELETE SET NULL,
+  created_at    timestamptz NOT NULL DEFAULT now(),
+  updated_at    timestamptz NOT NULL DEFAULT now()
 );
 
 -- ประวัติความคืบหน้า/กิจกรรมของการ์ด
@@ -42,7 +46,11 @@ CREATE TABLE IF NOT EXISTS card_progress_logs (
   card_id    uuid NOT NULL REFERENCES cards(id) ON DELETE CASCADE, -- อ้างอิงไปยังการ์ด
   actor_id   uuid NOT NULL REFERENCES users(id) ON DELETE RESTRICT, -- ผู้กระทำ
   message    text NOT NULL,                                    -- รายละเอียดข้อความ log
-  created_at timestamptz NOT NULL DEFAULT now()                -- วันและเวลาที่บันทึก log
+  is_active     boolean NOT NULL DEFAULT true,
+  created_by    uuid NULL REFERENCES users(id) ON DELETE SET NULL,
+  updated_by    uuid NULL REFERENCES users(id) ON DELETE SET NULL,
+  created_at    timestamptz NOT NULL DEFAULT now(),
+  updated_at    timestamptz NOT NULL DEFAULT now()
 );
 
 -- ดัชนี
@@ -69,7 +77,6 @@ COMMENT ON COLUMN cards.candidate_name IS 'ชื่อผู้สมัคร�
 COMMENT ON COLUMN cards.scheduled_at IS 'วันและเวลาที่นัดสัมภาษณ์';
 COMMENT ON COLUMN cards.status_code IS 'สถานะการ์ด อ้างอิงไปยัง card_statuses';
 COMMENT ON COLUMN cards.created_by IS 'UUID ของผู้สร้างการ์ด';
-COMMENT ON COLUMN cards.assignee_id IS 'UUID ของผู้รับผิดชอบ (nullable)';
 COMMENT ON COLUMN cards.created_at IS 'วันและเวลาที่สร้างการ์ด';
 COMMENT ON COLUMN cards.updated_at IS 'วันและเวลาที่แก้ไขการ์ดล่าสุด';
 
