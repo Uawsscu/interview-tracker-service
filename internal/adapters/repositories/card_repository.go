@@ -15,6 +15,8 @@ type CardRepository interface {
 	DeleteCard(id string) error
 
 	AddComment(c *entities.CardComment) error
+	UpdateComment(c *entities.CardComment) error
+	GetCommentByID(commentId uuid.UUID) (*entities.CardComment, error)
 	ListComments(cardID string, page, size int) ([]*entities.CardComment, int64, error)
 
 	AddHistory(p *entities.CardHistoryLogs) error
@@ -92,4 +94,23 @@ func (r *cardRepo) ListHistory(cardID string, page, size int) ([]*entities.CardH
 
 func (r *cardRepo) DeleteCard(id string) error {
 	return r.db.Delete(&entities.Card{}, "id = ?", id).Error
+}
+
+func (r *cardRepo) UpdateComment(c *entities.CardComment) error {
+	return r.db.Model(&entities.CardComment{}).
+		Where("id = ?", c.ID).
+		Updates(map[string]interface{}{
+			"content":    c.Content,
+			"author_id":  c.AuthorID,
+			"updated_at": c.UpdatedAt,
+			"updated_by": c.UpdatedBy,
+		}).Error
+}
+
+func (r *cardRepo) GetCommentByID(commentId uuid.UUID) (*entities.CardComment, error) {
+	var comment entities.CardComment
+	if err := r.db.First(&comment, "id = ?", commentId).Error; err != nil {
+		return nil, err
+	}
+	return &comment, nil
 }

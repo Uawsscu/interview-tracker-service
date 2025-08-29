@@ -6,6 +6,7 @@ import (
 
 	"interview-tracker/internal/adapters/repositories"
 	"interview-tracker/internal/entities"
+	"interview-tracker/internal/pkg/errs"
 
 	"github.com/google/uuid"
 )
@@ -93,6 +94,24 @@ func (uc *CardUsecase) AddComment(authorID uuid.UUID, cardID, content string) er
 		UpdatedBy: authorID,
 	}
 	return uc.repo.AddComment(cmt)
+}
+
+func (uc *CardUsecase) UpdateComment(authorID, commentId uuid.UUID, content string) error {
+	comment, err := uc.repo.GetCommentByID(commentId)
+	if err != nil {
+		return err
+	}
+	if comment.AuthorID != authorID {
+		return errs.Unauthorized("unauthorized")
+	}
+	cmt := &entities.CardComment{
+		CardID:    comment.CardID,
+		AuthorID:  authorID,
+		Content:   content,
+		UpdatedAt: time.Now(),
+		UpdatedBy: authorID,
+	}
+	return uc.repo.UpdateComment(cmt)
 }
 
 func (uc *CardUsecase) ListComments(cardID string, page, size int) ([]*entities.CardComment, int64, error) {

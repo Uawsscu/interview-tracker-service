@@ -103,6 +103,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/interview-tracker/authen/cards/comments/{commentId}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "comments"
+                ],
+                "summary": "Update comment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "commentId",
+                        "name": "commentId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "patch",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/card_models.UpdateCommentReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/interview-tracker/authen/cards/{id}": {
             "get": {
                 "security": [
@@ -765,6 +811,18 @@ const docTemplate = `{
                         "done"
                     ],
                     "example": "in_progress"
+                }
+            }
+        },
+        "card_models.UpdateCommentReq": {
+            "type": "object",
+            "required": [
+                "content"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string",
+                    "example": "ใช้ได้"
                 }
             }
         },

@@ -4,6 +4,7 @@ import (
 	"interview-tracker/internal/entities"
 	"interview-tracker/internal/middleware"
 	"interview-tracker/internal/models/card_models"
+	"interview-tracker/internal/pkg/errs"
 	"interview-tracker/internal/usecases"
 	"net/http"
 	"strconv"
@@ -171,6 +172,37 @@ func (h *CardHandler) AddComment(c *gin.Context) {
 	}
 	session := middleware.GetSession(c)
 	if err := h.uc.AddComment(session.UserID, id, req.Content); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"status": "ok"})
+}
+
+// @Summary Update comment
+// @Tags comments
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param commentId path string true "commentId"
+// @Param request body card_models.UpdateCommentReq true "patch"
+// @Success 200 {object} map[string]any
+// @Router /interview-tracker/authen/cards/comments/{commentId} [patch]
+func (h *CardHandler) UpdateComment(c *gin.Context) {
+	idReq := c.Param("commentId")
+	var req card_models.UpdateCommentReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	session := middleware.GetSession(c)
+	id, _ := uuid.Parse(idReq)
+
+	err := h.uc.UpdateComment(session.UserID, id, req.Content)
+	if err != nil {
+		if herr, ok := err.(*errs.HttpError); ok {
+			c.JSON(herr.Code, gin.H{"error": herr.Message})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

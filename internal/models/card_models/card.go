@@ -30,3 +30,7 @@ type UpdateCardStatusReq struct {
 type AddCommentReq struct {
 	Content string `json:"content" binding:"required" example:"ควรปรับปรุง portfolio ให้ละเอียดขึ้น"`
 }
+
+type UpdateCommentReq struct {
+	Content string `json:"content" binding:"required" example:"ใช้ได้"`
+}
