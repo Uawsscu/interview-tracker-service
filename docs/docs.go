@@ -284,7 +284,7 @@ const docTemplate = `{
                 "tags": [
                     "cards"
                 ],
-                "summary": "list history ogs",
+                "summary": "list history logs",
                 "parameters": [
                     {
                         "type": "string",

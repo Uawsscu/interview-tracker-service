@@ -3,13 +3,14 @@ package repositories
 import (
 	"interview-tracker/internal/entities"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type CardRepository interface {
 	Create(card *entities.Card) error
 	Update(card *entities.Card) error
-	GetByID(id string) (*entities.Card, error)
+	GetByID(id uuid.UUID) (*entities.Card, error)
 	List(status string, page, size int) ([]*entities.Card, int64, error)
 	DeleteCard(id string) error
 
@@ -28,7 +29,7 @@ func (r *cardRepo) Create(c *entities.Card) error { return r.db.Create(c).Error 
 
 func (r *cardRepo) Update(c *entities.Card) error { return r.db.Save(c).Error }
 
-func (r *cardRepo) GetByID(id string) (*entities.Card, error) {
+func (r *cardRepo) GetByID(id uuid.UUID) (*entities.Card, error) {
 	var card entities.Card
 	if err := r.db.First(&card, "id = ?", id).Error; err != nil {
 		return nil, err

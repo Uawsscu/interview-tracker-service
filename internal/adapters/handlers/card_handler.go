@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type CardHandler struct{ uc *usecases.CardUsecase }
@@ -50,7 +51,8 @@ func (h *CardHandler) List(c *gin.Context) {
 // @Success 200 {object} map[string]any
 // @Router /interview-tracker/authen/cards/{id} [get]
 func (h *CardHandler) Detail(c *gin.Context) {
-	id := c.Param("id")
+	idReq := c.Param("id")
+	id, _ := uuid.Parse(idReq)
 	card, err := h.uc.GetByID(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
@@ -100,7 +102,7 @@ func (h *CardHandler) Create(c *gin.Context) {
 // @Success 200 {object} map[string]any
 // @Router /interview-tracker/authen/cards/{id} [patch]
 func (h *CardHandler) Update(c *gin.Context) {
-	id := c.Param("id")
+	idReq := c.Param("id")
 	var req card_models.UpdateCardReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -116,6 +118,7 @@ func (h *CardHandler) Update(c *gin.Context) {
 	if req.ScheduledAt != nil {
 		patch["scheduled_at"] = *req.ScheduledAt
 	}
+	id, _ := uuid.Parse(idReq)
 	card, err := h.uc.UpdatePartial(id, patch)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -134,13 +137,14 @@ func (h *CardHandler) Update(c *gin.Context) {
 // @Success 200 {object} map[string]any
 // @Router /interview-tracker/authen/cards/{id}/status [patch]
 func (h *CardHandler) UpdateStatus(c *gin.Context) {
-	id := c.Param("id")
+	idReq := c.Param("id")
 	var req card_models.UpdateCardStatusReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	session := middleware.GetSession(c)
+	id, _ := uuid.Parse(idReq)
 	card, err := h.uc.UpdateStatus(id, req.Status, session.UserID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
